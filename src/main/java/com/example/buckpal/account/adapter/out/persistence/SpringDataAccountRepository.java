@@ -1,4 +1,6 @@
 package com.example.buckpal.account.adapter.out.persistence;
 
-public class SpringDataAccountRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+interface SpringDataAccountRepository extends JpaRepository<AccountJpaEntity, Long> {
 }

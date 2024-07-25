@@ -1,14 +1,37 @@
 package com.example.buckpal.account.domain;
 
-import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Value;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+@Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Account {
 
-    private AccountId id;
-    private Money baselineBalance;
-    private ActivityWindow activityWindow;
+    private final AccountId id;
+    private final Money baselineBalance;
+    private final ActivityWindow activityWindow;
 
-    // 생성자와 getter는 생략
+    public static Account withoutId(
+            Money baselineBalance,
+            ActivityWindow activityWindow) {
+        return new Account(null, baselineBalance, activityWindow);
+    }
+
+    public static Account withId(
+            AccountId accountId,
+            Money baselineBalance,
+            ActivityWindow activityWindow) {
+        return new Account(accountId, baselineBalance, activityWindow);
+    }
+
+    public Optional<AccountId> getId(){
+        return Optional.ofNullable(this.id);
+    }
 
     public Money calculateBalance() {
         return Money.add(
@@ -16,7 +39,7 @@ public class Account {
                 this.activityWindow.calculateBalance(this.id));
     }
 
-    public boolean withDraw(Money money, AccountId targetAccountId) {
+    public boolean withdraw(Money money, AccountId targetAccountId) {
         if (!mayWithdraw(money)) {
             return false;
         }
@@ -32,6 +55,13 @@ public class Account {
         return true;
     }
 
+    private boolean mayWithdraw(Money money) {
+        return Money.add(
+                        this.calculateBalance(),
+                        money.negate())
+                .isPositiveOrZero();
+    }
+
     public boolean deposit(Money money, AccountId sourceAccountId) {
         Activity deposit = new Activity(
                 this.id,
@@ -42,4 +72,11 @@ public class Account {
         this.activityWindow.addActivity(deposit);
         return true;
     }
+
+
+    @Value
+    public static class AccountId {
+        private Long value;
+    }
+
 }
